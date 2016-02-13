@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'twitter'
+require_relative "hardiness_zones"
 
 client = Twitter::REST::Client.new do |config|
   config.consumer_key        = ENV[ "CONS_TOKEN" ]
@@ -26,8 +27,12 @@ streaming_client.filter(track: user_name) do |object|
     
     zip_code = /\d{5}/.match(tweet_text)
     
+    return_tweet = get_zone(zip_code)
+    
     if !zip_code.nil?
-       client.update("@#{reply_name} Your zip code is #{zip_code}", { in_reply_to_status_id: tweet_id })
+       client.update("@#{reply_name} #{return_tweet}", { in_reply_to_status_id: tweet_id })
+    else
+      client.update("@#{reply_name} I need a zip code!", { in_reply_to_status_id: tweet_id })
     end
     
   end
