@@ -14,19 +14,23 @@ def get_zone(zip_code)
 
   file.each do |line| 
     if line =~ /#{zip_code}/
+      
       line_info = line.split(',')
-      line_zip = line_info[0]
-      zone = line_info[1]
-      city = line_info[2]
-      state = line_info[3]
+      
+      zone_info = {
+        "line_zip" => line_info[0],
+        "zone" => line_info[1],
+        "city" => line_info[2],
+        "state" => line_info[3]
+      }
+
+      remove_quotations(zone_info["city"])
     
-      remove_quotations(city)
-    
-      return "The USDA hardiness zone for #{city}, #{state} #{line_zip} is : #{zone}"
+      return zone_info
   
     end
   end
 
-  return "That zip code is not in my database!"
+  return nil
   
 end

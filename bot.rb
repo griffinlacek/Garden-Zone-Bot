@@ -27,13 +27,23 @@ streaming_client.filter(track: user_name) do |object|
     
     zip_code = /\d{5}/.match(tweet_text)
     
-    return_tweet = get_zone(zip_code)
+    zone_info = get_zone(zip_code)
     
-    if !zip_code.nil?
-       client.update("@#{reply_name} #{return_tweet}", { in_reply_to_status_id: tweet_id })
+    if zip_code.nil?
+      return_tweet = "I need a zip code!"
+    elsif !zone_info.nil? 
+      return_tweet = "The USDA hardiness zone for #{zone_info["city"]}, " +
+      "#{zone_info["state"]} #{zone_info["line_zip"]} is : " +
+      "#{zone_info["zone"]}"
+      
+      return_tweet = return_tweet.gsub(/\t/, '')
+      
     else
-      client.update("@#{reply_name} I need a zip code!", { in_reply_to_status_id: tweet_id })
+      return_tweet = "That zip code is not in my database!"
     end
-    
+
+    client.update("@#{reply_name} #{return_tweet}", 
+      { in_reply_to_status_id: tweet_id })
+
   end
 end
