@@ -2,6 +2,16 @@
 
 require 'twitter'
 require_relative "hardiness_zones"
+require "pathname"
+
+def get_state_map(state)
+  state = state.downcase
+  state_path = Pathname("state_maps/#{state}.jpg")
+  
+  map_file = File.new(state_path)
+  
+  return map_file
+end
 
 client = Twitter::REST::Client.new do |config|
   config.consumer_key        = ENV[ "CONS_TOKEN" ]
@@ -36,14 +46,20 @@ streaming_client.filter(track: user_name) do |object|
       "#{zone_info["state"]} #{zone_info["line_zip"]} is : " +
       "#{zone_info["zone"]}"
       
-      return_tweet = return_tweet.gsub(/\t/, '')
-      
     else
       return_tweet = "That zip code is not in my database!"
     end
-
-    client.update("@#{reply_name} #{return_tweet}", 
-      { in_reply_to_status_id: tweet_id })
+    
+    state_map = get_state_map(zone_info["state"])
+    
+    map_id = client.upload(state_map)
+    
+    #Check to not reply to self
+    if(reply_name != "gardenzonebot") 
+      client.update("@#{reply_name} #{return_tweet}",
+        in_reply_to_status_id: tweet_id, media_ids: map_id )
+    end
 
   end
 end
+  
