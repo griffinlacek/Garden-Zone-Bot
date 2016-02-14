@@ -13,6 +13,22 @@ def get_state_map(state)
   return map_file
 end
 
+def tweet_update(client, reply_name, reply_tweet, tweet_id)
+  #Check to not reply to self
+  if(reply_name != "gardenzonebot") 
+    client.update("@#{reply_name} #{reply_tweet}",
+      in_reply_to_status_id: tweet_id )
+  end
+end
+
+def tweet_media_update(client, reply_name, reply_tweet, tweet_id, media_id)
+  #Check to not reply to self
+  if(reply_name != "gardenzonebot") 
+    client.update("@#{reply_name} #{reply_tweet}",
+      in_reply_to_status_id: tweet_id, media_ids: media_id )
+  end
+end
+
 client = Twitter::REST::Client.new do |config|
   config.consumer_key        = ENV[ "CONS_TOKEN" ]
   config.consumer_secret     = ENV[ "SEC_CONS_TOKEN" ]
@@ -40,24 +56,24 @@ streaming_client.filter(track: user_name) do |object|
     zone_info = get_zone(zip_code)
     
     if zip_code.nil?
-      return_tweet = "I need a zip code!"
+      reply_tweet = "I need a zip code!"
+      
+      tweet_update(client, reply_name, reply_tweet, tweet_id)
     elsif !zone_info.nil? 
-      return_tweet = "The USDA hardiness zone for #{zone_info["city"]}, " +
+      reply_tweet = "The USDA hardiness zone for #{zone_info["city"]}, " +
       "#{zone_info["state"]} #{zone_info["line_zip"]} is : " +
       "#{zone_info["zone"]}"
       
+      state_map = get_state_map(zone_info["state"])
+    
+      map_id = client.upload(state_map)
+      
+      tweet_media_update(client, reply_name, reply_tweet, tweet_id, map_id)
+
     else
-      return_tweet = "That zip code is not in my database!"
-    end
-    
-    state_map = get_state_map(zone_info["state"])
-    
-    map_id = client.upload(state_map)
-    
-    #Check to not reply to self
-    if(reply_name != "gardenzonebot") 
-      client.update("@#{reply_name} #{return_tweet}",
-        in_reply_to_status_id: tweet_id, media_ids: map_id )
+      reply_tweet = "That zip code is not in my database!"
+      
+      tweet_update(client, reply_name, reply_tweet, tweet_id)
     end
 
   end
