@@ -1,4 +1,4 @@
-# Tic-Tac-Toe-Bot
+# Garden Zone Bot
 
 @GardenZoneBot is a twitter bot written in Ruby for finding the USDA Hardines Zone of a specific zip code.
 
